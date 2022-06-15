@@ -115,34 +115,81 @@ public class Analyzer {
     }
 
     /*
-     * Implement this method in Part 4
+     * This method takes as input a (nullable) List of (nullable) Sentence objects and outputs a non-null Map, 
+     * whose keys are the (valid, lowercased) words in each input Sentence and whose values are the final context scores, 
+     * represented by ObservationTally, for that word. If the input List of Sentences is null or empty, the method should return an empty Map. 
+     * If a Sentence object in the input List is null or if the text of a Sentence is null, 
+     * this method should ignore it and continue processing the remaining Sentences. You may return any implementation of java.util.Map
      */
     public static Map<String, ObservationTally> wordTallies(List<Sentence> sentences) {
     	if(sentences == null || sentences.isEmpty()) {return new HashMap<String, ObservationTally>();}
+    	Map<String, ObservationTally> words= new HashMap<String, ObservationTally>();
     	for(Sentence sen: sentences) {
-    		if(sen!=null || sen.getText() !=null) {
-    			
-    			
+    		if(sen!=null && sen.getText() !=null) {
+    			String[] strs = sen.getText().split("\\s");
+    			for(String token: strs) {
+    				if(Character.isLetter(token.charAt(0))) {
+    					if(words.containsKey(token)) {
+    						ObservationTally update = words.get(token);
+    						update.increaseTotal(sen.getScore());
+    						words.put(token, update);		
+    					}
+    					else if (!words.containsKey(token)) {
+    						ObservationTally obs = new ObservationTally(1,sen.getScore());
+        					words.put(token, obs);  	
+                        }				
+    				}
+    			} 			
     		}
     	}
     	
-    	
-        return null;
+        return words;
     }
 
 
     /*
-     * Implement this method in Part 5
+     * This method takes a (nullable) Map from (non-null) word to (non-null) ObservationTally and outputs a non-null Map 
+     * with the original word as key and the word’s average sentiment score as value. If the input Map is null, 
+     * return an empty Map. You may return any implementation of java.util.Map.
      */
     public static Map<String, Double> calculateScores(Map<String, ObservationTally> tallies) {
-        return null;
+        if(tallies == null || tallies.isEmpty()) {return new HashMap<String, Double>();}
+        Map<String, Double> map = new HashMap<String, Double>();
+    	
+    	if(tallies != null && !tallies.isEmpty()) {
+    		for(Entry<String, ObservationTally> entry: tallies.entrySet()) {
+    			map.put(entry.getKey(),entry.getValue().calculateScore());
+    		}
+    	}
+    	
+        return map;
     }
 
     /*
-     * Implement this method in Part 6
+     * This method takes as input a (nullable) Map from (non-null) words to (non-null) sentiment scores as well as an arbitrary statement text and, 
+     * using the sentiment scores for each word in this Map, outputs the sentiment score for the given statement text, 
+     * which is the arithmetic mean score of all its (valid) words.
      */
     public static double calculateSentenceScore(Map<String, Double> wordScores, String text) {
-        return 0;
+       if(wordScores == null || wordScores.size() == 0 || text == null || text.isEmpty()) {
+        	return 0;
+        }
+        
+        double score = 0;
+        int count = 0;
+        
+        String[] tokens = text.toLowerCase().split("\\s");
+        for (String token : tokens) {
+        	if(Character.isLetter(token.charAt(0))) {
+        		if (wordScores.containsKey(token)) {
+        			score += wordScores.get(token);
+        		}
+        		count++;
+        	}
+        }
+        
+        
+        return score/(double)count;
     }
 
     /*
